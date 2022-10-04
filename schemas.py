@@ -17,3 +17,4 @@ class DataUpdateSchema(Schema):
 class UsersSchema(Schema):
     id  = fields.Str(dump_only = True)   
     user_name = fields.Str(required = True)
+    _password = fields.Str(required = True)
