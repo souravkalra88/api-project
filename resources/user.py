@@ -3,7 +3,8 @@ import uuid
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
-from db import users 
+from db import users
+from schemas import  UsersSchema 
 
 blp = Blueprint("users" , __name__ , description = "operations on users")
 
@@ -29,9 +30,9 @@ class User(MethodView):
 class UserList(MethodView):
     def get(self):
         return {"users" : list(users.values())}
-    
-    def post(self):
-        user_data = request.get_json()
+    @blp.arguments(UsersSchema)
+    def post(self,user_data):
+        # user_data = request.get_json()
         user_id = uuid.uuid4().hex 
         new_user = {**user_data , "user_id" : user_id }
         users[user_id] = new_user

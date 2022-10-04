@@ -4,7 +4,7 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
 from db import data,users
-
+from schemas import DataSchems, DataUpdateSchema
 blp = Blueprint("data" , __name__ , description = "operations on data. ")
 
 @blp.route("/data/<string:id>")
@@ -15,9 +15,9 @@ class Data(MethodView):
         except KeyError:  
             return abort(404, message = "Data not found. ")
         
-        
-    def put(self,id):
-        user_data = request.get_json()
+    @blp.arguments(DataUpdateSchema)    
+    def put(self,user_data ,id):
+        # user_data = request.get_json()
         try:
             t_data = data[id]
             t_data |= user_data
@@ -38,8 +38,9 @@ class DataList(MethodView):
     def get(self):
         return {"data" : list(data.values())}    
     
-    def post(self):
-        user_data = request.get_json()
+    @blp.arguments(DataSchems)
+    def post(self,user_data):
+        # user_data = request.get_json()
         if user_data["user_id"] not in users:
             return abort(404 , message="Data not found")
     
