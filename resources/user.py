@@ -37,4 +37,4 @@ class UserList(MethodView):
         new_user = {**user_data , "user_id" : user_id }
         users[user_id] = new_user
     
-        return new_user,201                
+        return new_user,201  

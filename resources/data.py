@@ -49,6 +49,4 @@ class DataList(MethodView):
         new_data = {**user_data , "id" : id}
         data[id]=new_data 
     
-        return new_data , 201      
-    
-      
+        return new_data , 201   
