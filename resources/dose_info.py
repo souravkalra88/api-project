@@ -36,7 +36,7 @@ class Dosage_Info(MethodView):
 @blp.route("/dose_info")
 class DoseList(MethodView):
     def get(self):
-        return {"data" : list(dose_info.values())} 
+        return {"dose_info" : list(dose_info.values())} 
     
     @blp.arguments(DoseInfoSchemas)
     def post(self,dose):
