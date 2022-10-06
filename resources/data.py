@@ -1,9 +1,13 @@
+from email import message
 from pydoc import describe
 import uuid
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
-from db import data,users
+from sqlalchemy.exc import SQLAlchemyError
+from models import DataModel
+from db import db 
+
 from schemas import DataSchems, DataUpdateSchema
 
 blp = Blueprint("data" , __name__ , description = "operations on data. ")
@@ -41,18 +45,17 @@ class DataList(MethodView):
     
     @blp.arguments(DataSchems)
     def post(self,user_data):
-        # user_data = request.get_json()
-        if user_data["user_id"] not in users:
-            return abort(404 , message="Data not found")
+        user_data = request.get_json()
+        new_data = DataModel(**user_data)
+    
+        try:
+            db.session.add(new_data)
+            db.session.commit()
+        except SQLAlchemyError as e :
+           return abort(500 , message = "EROOR OCCURED with data->. {}".format(e) )
+            
+                
+    
         
-        else:
-            for dt in data.values():
-                if user_data["user_id"] == dt["user_id"] and user_data["dob"] == dt["dob"]  :
-                    return abort(404 , message="Duplicate data exists")
-    
-    
-        id = uuid.uuid4().hex
-        new_data = {**user_data , "id" : id}
-        data[id]=new_data 
     
         return new_data , 201   

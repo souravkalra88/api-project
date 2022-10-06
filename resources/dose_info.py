@@ -2,7 +2,7 @@ import uuid
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
-from db import users, dose_info
+
 from schemas import DoseInfoUpdateSchema, DoseInfoSchemas
 
 blp = Blueprint("dose_info" , __name__ , description = "data about dose_info")

@@ -4,7 +4,9 @@ import hashlib
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
-from db import users
+from models.user import UserModel
+from db import db 
+from sqlalchemy.exc import SQLAlchemyError
 from schemas import  UsersSchema 
 
 blp = Blueprint("users" , __name__ , description = "operations on users")
@@ -31,16 +33,21 @@ class User(MethodView):
 class UserList(MethodView):
     def get(self):
         return {"users" : list(users.values())}
+    
+    
     @blp.arguments(UsersSchema)
     def post(self,user_data):
-        # user_data = request.get_json()
-        user_id = uuid.uuid4().hex 
+        user_data = request.get_json()
         user_data["_password"] = hashlib.sha256(user_data["_password"].encode()).hexdigest()
+        new_user = UserModel(**user_data)
         
-        for u in users.values() :
-            if u["user_name"] == user_data["user_name"] :
-                return abort(404, message = "Same user already exists.")
-        new_user = {**user_data , "user_id" : user_id }
-        users[user_id] = new_user
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except SQLAlchemyError as e :
+            return abort(500 , message = "EROOR OCCURED with data->. {}".format(e) )    
+       
     
-        return new_user,201  
+        return {"user" : new_user} , 201  
+    
+   
