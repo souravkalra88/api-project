@@ -5,6 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint,abort
 from db import data,users
 from schemas import DataSchems, DataUpdateSchema
+
 blp = Blueprint("data" , __name__ , description = "operations on data. ")
 
 @blp.route("/data/<string:id>")
@@ -43,6 +44,11 @@ class DataList(MethodView):
         # user_data = request.get_json()
         if user_data["user_id"] not in users:
             return abort(404 , message="Data not found")
+        
+        else:
+            for dt in data.values():
+                if user_data["user_id"] == dt["user_id"] and user_data["dob"] == dt["dob"]  :
+                    return abort(404 , message="Duplicate data exists")
     
     
         id = uuid.uuid4().hex

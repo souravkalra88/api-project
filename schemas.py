@@ -19,3 +19,18 @@ class UsersSchema(Schema):
     user_name = fields.Str(required = True)
     _password = fields.Str(required = True)
     
+    
+class DoseInfoSchemas(Schema):
+    dose_id = fields.Str(dump_only = True)
+    dose_number = fields.Str(required = True)
+    name_of_vacc = fields.Str(required = True)
+    date_of_vacc = fields.Str(required = True)
+    user_id = fields.Str(required = True)
+    
+class DoseInfoUpdateSchema(Schema):
+    user_id = fields.Str(load_only = True)
+    date_of_vacc = fields.Str(required = True)
+    dose_number = fields.Str(required = True)
+    name_of_vacc = fields.Str(required = True)
+            
+    
