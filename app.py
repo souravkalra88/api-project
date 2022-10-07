@@ -28,6 +28,7 @@ app.config[
         ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 db.init_app(app)
 
 api = Api(app)
@@ -38,7 +39,7 @@ with app.app_context():
 api.register_blueprint(UserBlueprint)
 api.register_blueprint(DataBlueprint)
 api.register_blueprint(DoseInfoBlueprint) 
-    
+
 
 
 

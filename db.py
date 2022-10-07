@@ -1,6 +1,6 @@
 # users = {}
 # data = {}
-# dose_info = {}
+# doses = {}
 
 from flask_sqlalchemy import SQLAlchemy
 
