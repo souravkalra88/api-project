@@ -12,38 +12,48 @@ from schemas import DataSchems, DataUpdateSchema
 
 blp = Blueprint("data" , __name__ , description = "operations on data. ")
 
-@blp.route("/data/<string:id>")
+@blp.route("/data/<int:id>")
 class Data(MethodView):
+    @blp.response(200 ,DataSchems)
     def get(self , id):
-        try:
-            return data[id]  
-        except KeyError:  
-            return abort(404, message = "Data not found. ")
-        
+        t_data = DataModel.query.get_or_404(id)
+        return t_data
+    
     @blp.arguments(DataUpdateSchema)    
-    def put(self,user_data ,id):
-        # user_data = request.get_json()
-        try:
-            t_data = data[id]
-            t_data |= user_data
-            return t_data
-        except KeyError:
-            abort(404 , message = "data not found. ")    
+    @blp.response(200 ,DataSchems)
+    def put(self,t_data ,id):
+        t_data = request.get_json()
+        user_data = DataModel.query.get_or_404(id)
+        
+        if user_data :
+            user_data.Contact = t_data["Contact"]
+            user_data.Gender = t_data["Gender"]
+            user_data.dob = t_data["dob"]
+        else :
+            user_data = DataModel(id = id , **t_data)
+        db.session.add(user_data)
+        db.session.commit()
+                
+        return user_data 
+            
         
     def delete(self , id):
-        try:
-            del data[id]
-            return {"msg": "User Data deleted. "} 
-        except KeyError:
-            abort(404 , "User Data not found. ")
+       
+        user_data = DataModel.query.get_or_404(id)
+        db.session.delete(user_data)
+        db.session.commit()
+        return {"msg": "deleted data successfully"} ,200
+    
             
             
 @blp.route("/data")
 class DataList(MethodView):
+    @blp.response(200 , DataSchems(many = True))
     def get(self):
-        return {"data" : list(data.values())}    
+        return DataModel.query.all()    
     
     @blp.arguments(DataSchems)
+    @blp.response(201 , DataSchems)
     def post(self,user_data):
         user_data = request.get_json()
         new_data = DataModel(**user_data)
@@ -54,8 +64,4 @@ class DataList(MethodView):
         except SQLAlchemyError as e :
            return abort(500 , message = "EROOR OCCURED with data->. {}".format(e) )
             
-                
-    
-        
-    
-        return new_data , 201   
+        return new_data  

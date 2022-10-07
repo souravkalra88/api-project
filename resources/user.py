@@ -1,41 +1,43 @@
 from pydoc import describe
 import uuid
 import hashlib
-from flask import request  
+from flask import jsonify, request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
+from sqlalchemy import JSON
 from models.user import UserModel
 from db import db 
 from sqlalchemy.exc import SQLAlchemyError
-from schemas import  UsersSchema 
-
+from schemas import  PlainUsersSchema, UsersSchema 
+import json 
 blp = Blueprint("users" , __name__ , description = "operations on users")
 
-@blp.route("/user/<string:user_id>")
+@blp.route("/user/<int:user_id>")
 class User(MethodView):
+    @blp.response(200 , UsersSchema )
     def get(self, user_id):
-        try:
-            return users[user_id]
-        except KeyError:
-            return abort(404, message = "User not found. ") 
+        t_user = UserModel.query.get_or_404(user_id)
+        return t_user
     
     def delete(self, user_id):
-        try:
-            del users[user_id]
-            return {"msg": "User deleted. "}
-        except KeyError:
-            abort(404, message = "User not found. ")
+        t_user = UserModel.query.get_or_404(user_id)
+        db.session.delete(t_user)
+        db.session.commit()
+        return {"msg": "User deleted successfully"} , 200
             
             
             
             
 @blp.route("/user")
 class UserList(MethodView):
+    @blp.response(200 , UsersSchema(many = True))
     def get(self):
-        return {"users" : list(users.values())}
+        
+        return UserModel.query.all()
     
     
     @blp.arguments(UsersSchema)
+    @blp.response(201 , UsersSchema)
     def post(self,user_data):
         user_data = request.get_json()
         user_data["_password"] = hashlib.sha256(user_data["_password"].encode()).hexdigest()
@@ -48,6 +50,8 @@ class UserList(MethodView):
             return abort(500 , message = "EROOR OCCURED with data->. {}".format(e) )    
        
     
-        return {"user" : new_user} , 201  
+        return new_user 
+    
+    
     
    

@@ -2,58 +2,67 @@ import uuid
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
-
+from models.dose_info import DoseInfoModel
+from db import db
 from schemas import DoseInfoUpdateSchema, DoseInfoSchemas
+from sqlalchemy.exc import SQLAlchemyError
 
 blp = Blueprint("dose_info" , __name__ , description = "data about dose_info")
 
-@blp.route("/dose_info/<string:dose_id>")
+@blp.route("/dose_info/<int:dose_id>")
 class Dosage_Info(MethodView):  
+    @blp.response(200 , DoseInfoSchemas)
     def get(self,dose_id):
-        try:
-            return dose_info[dose_id]  
-        except KeyError:  
-            return abort(404, message = "Data not found. ")
+        t_dose = DoseInfoModel.query.get_or_404(dose_id)
+        return t_dose  
         
-    @blp.arguments(DoseInfoUpdateSchema)     
-    def put(self,dose ,dose_id):
-        try:
-            # dose = request.get_json()
-            t_dose = dose_info[dose_id]
-            t_dose |= dose 
-            return t_dose
-        except KeyError:
-            abort(404 , message = "Dose_Info not found. ") 
+    @blp.arguments(DoseInfoUpdateSchema) 
+    @blp.response(200 ,DoseInfoSchemas)    
+    def put(self,t_dose ,dose_id):
+        t_dose = request.get_json()
+        dose = DoseInfoModel.query.get_or_404(dose_id)
+        
+        if dose :
+            dose.date_of_vacc = t_dose["date_of_vacc"]
+            dose.dose_number = t_dose["dose_number"]
+            dose.name_of_vacc = t_dose["name_of_vacc"]
+            
+        else :
+            dose = DoseInfoModel(dose_id = dose_id , **t_dose) 
+        
+        db.session.add(dose)
+        db.session.commit()
+        
+        return dose        
+            
             
     def delete(self, dose_id):
-        try:
-            del dose_info[dose_id]
-            return {"msg": "User Dose_Data deleted. "} 
-        except KeyError:
-            abort(404 , "User Data not found. ")        
+        dose = DoseInfoModel.query.get_or_404(dose_id)
+        db.session.delete(dose)
+        db.session.commit()
+        return {"msg": "deleted dose data successfully"} ,200         
 
 
 @blp.route("/dose_info")
 class DoseList(MethodView):
+    @blp.response(200 , DoseInfoSchemas(many = True))
     def get(self):
-        return {"dose_info" : list(dose_info.values())} 
+        return DoseInfoModel.query.all()
+     
     
-    @blp.arguments(DoseInfoSchemas)
-    def post(self,dose):
+     
+    @blp.response(201 , DoseInfoSchemas)
+    def post(self):
         
-        if dose["user_id"] not in users :
-            return abort(404 , message="Dose_info not found") 
+        dose = request.get_json()
+        n_dose = DoseInfoModel(**dose)
         
-        else:
-            for doses in dose_info.values():
-                if dose["user_id"] == doses["user_id"] and dose["name_of_vacc"] == doses["name_of_vacc"] and dose["dose_number"] == doses["dose_number"] :
-                    return abort(404 , message="Duplicate DoseInfo exists")
-           
-                
-        
-        dose_id = uuid.uuid4().hex
-        new_dose_data = {**dose , "dose_id" : dose_id}
-        dose_info[dose_id]= new_dose_data
+        try:
+            db.session.add(n_dose)
+            db.session.commit()
+            
+        except SQLAlchemyError as e :
+           return abort(500 , message = "EROOR OCCURED with dose_data->. {}".format(e) )    
     
-        return new_dose_data , 201   
+        return n_dose  
     

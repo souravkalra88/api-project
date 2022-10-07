@@ -11,7 +11,14 @@ class PlainDataSchems(Schema):
 class PlainUsersSchema(Schema):
     user_id  = fields.Int(dump_only = True)   
     user_name = fields.Str(required = True)
-    _password = fields.Str(required = True)    
+    _password = fields.Str(required = True)  
+    
+    
+class PLainDoseInfo(Schema):
+    dose_id = fields.Int(dump_only = True)
+    date_of_vacc = fields.Str(required = True)
+    dose_number = fields.Str(required = True)
+    name_of_vacc = fields.Str(required = True)      
     
     
 class DataUpdateSchema(Schema): 
@@ -20,6 +27,11 @@ class DataUpdateSchema(Schema):
     Gender = fields.Str()
     dob = fields.Str()    
     
+class DoseInfoUpdateSchema(Schema):
+    date_of_vacc  = fields.Str()   
+    dose_number = fields.Int()
+    name_of_vacc = fields.Str() 
+    
     
 class DataSchems(PlainDataSchems):
     user_id = fields.Int(required = True , load_only = True)
@@ -27,6 +39,10 @@ class DataSchems(PlainDataSchems):
 
 class UsersSchema(PlainUsersSchema):
     datas = fields.List(fields.Nested(PlainDataSchems(), dump_only = True))
+   
+class DoseInfoSchemas(PLainDoseInfo):
+    user_id = fields.Int(required = True , load_only = True)
+    user = fields.Nested(PlainUsersSchema() , dump_only = True)    
     
         
     
