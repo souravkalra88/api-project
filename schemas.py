@@ -39,6 +39,7 @@ class DataSchems(PlainDataSchems):
 
 class UsersSchema(PlainUsersSchema):
     datas = fields.List(fields.Nested(PlainDataSchems(), dump_only = True))
+    doses = fields.List(fields.Nested(PLainDoseInfo(), dump_only = True)) 
    
 class DoseInfoSchemas(PLainDoseInfo):
     user_id = fields.Int(required = True , load_only = True)
