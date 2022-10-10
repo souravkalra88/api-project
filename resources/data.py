@@ -1,6 +1,6 @@
 from email import message
 from pydoc import describe
-import uuid
+from flask_jwt_extended import get_jwt, jwt_required
 from flask import request  
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
@@ -14,11 +14,12 @@ blp = Blueprint("data" , __name__ , description = "operations on data. ")
 
 @blp.route("/data/<int:id>")
 class Data(MethodView):
+    @jwt_required()
     @blp.response(200 ,DataSchems)
     def get(self , id):
         t_data = DataModel.query.get_or_404(id)
         return t_data
-    
+    @jwt_required()
     @blp.arguments(DataUpdateSchema)    
     @blp.response(200 ,DataSchems)
     def put(self,t_data ,id):
@@ -36,9 +37,11 @@ class Data(MethodView):
                 
         return user_data 
             
-        
+    @jwt_required()    
     def delete(self , id):
-       
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
         user_data = DataModel.query.get_or_404(id)
         db.session.delete(user_data)
         db.session.commit()
@@ -48,10 +51,12 @@ class Data(MethodView):
             
 @blp.route("/data")
 class DataList(MethodView):
+    @jwt_required()
     @blp.response(200 , DataSchems(many = True))
     def get(self):
         return DataModel.query.all()    
     
+    @jwt_required()
     @blp.arguments(DataSchems)
     @blp.response(201 , DataSchems)
     def post(self,user_data):

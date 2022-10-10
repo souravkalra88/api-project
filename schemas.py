@@ -70,3 +70,9 @@ class DoseInfoUpdateSchema(Schema):
     name_of_vacc = fields.Str(required = True)
             
     
+    
+class UserLoginSchema(Schema):
+    user_id  = fields.Int(dump_only = True)   
+    user_name = fields.Str(required = True)
+    _password = fields.Str(required = True , load_only = True)    
+    

@@ -1,6 +1,7 @@
 import uuid
 from flask import request  
 from flask.views import MethodView
+from flask_jwt_extended import get_jwt, jwt_required
 from flask_smorest import Blueprint,abort
 from models.dose_info import DoseInfoModel
 from db import db
@@ -11,11 +12,12 @@ blp = Blueprint("dose_info" , __name__ , description = "data about dose_info")
 
 @blp.route("/dose_info/<int:dose_id>")
 class Dosage_Info(MethodView):  
+    @jwt_required()
     @blp.response(200 , DoseInfoSchemas)
     def get(self,dose_id):
         t_dose = DoseInfoModel.query.get_or_404(dose_id)
         return t_dose  
-        
+    @jwt_required()    
     @blp.arguments(DoseInfoUpdateSchema) 
     @blp.response(200 ,DoseInfoSchemas)    
     def put(self,t_dose ,dose_id):
@@ -35,8 +37,12 @@ class Dosage_Info(MethodView):
         
         return dose        
             
-            
+    @jwt_required()        
     def delete(self, dose_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+        
         dose = DoseInfoModel.query.get_or_404(dose_id)
         db.session.delete(dose)
         db.session.commit()
@@ -45,12 +51,13 @@ class Dosage_Info(MethodView):
 
 @blp.route("/dose_info")
 class DoseList(MethodView):
+    @jwt_required()
     @blp.response(200 , DoseInfoSchemas(many = True))
     def get(self):
         return DoseInfoModel.query.all()
      
     
-     
+    @jwt_required() 
     @blp.response(201 , DoseInfoSchemas)
     def post(self):
         
